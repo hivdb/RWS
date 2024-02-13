@@ -3,20 +3,18 @@ import re
 import seaborn as sns
 import matplotlib.pyplot as plt
 
-muts_to_show = {"NRTI": ["41L", "62V", "65R", "65N", "67N", "70R", "70E", "70Q", "74V", "74I", 
-                        "115F", "151M", "184V", "184I", "210W", "215Y", "215F", 
-                        "219E", "219Q"],
-                "NNRTI": ["98G", "100I", "101E", "101P", "103N", "106A", "106M", "138K", "179D", 
-                        "181C", "188C", "188L", "190A", "190S", "221Y", "225H", "227L", "227C", 
-                        "230L"],
-                "INSTI": ["51Y", "66I", "66K", "92Q", "97A", "118R", "121Y", "138K", "138A", "140S", 
-                          "140A", "143C", "143R", "147G", "148H", "148R", "148K", "153Y", "155H", 
-                          "263K"],
-                "PI": ["10F", "24I", "32I", "33F", "46I", "47V", "47A", "48V", "50L", "50V", 
-                       "54V", "54L", "54M", "73S", "74P", "76V", "82A", "82T", "82F", "84V", "88S", 
-                        "89V", "89T", "90M"]}
+drms_to_show = {"NRTI": ["M41L", "A62V", "K65R", "K65N", "D67N", "T69_", "K70R", "K70E", "K70Q", "L74V", "L74I",
+                        "Y115F", "Q151M", "M184V", "M184I", "L210W", "T215Y", "T215F", "K219E", "K219Q"],
+                "NNRTI": ["A98G", "L100I", "K101E", "K101P", "K103N", "V106A", "V106M", "E138K", "V179D", 
+                          "Y181C", "Y181I", "Y181V", "Y188C", "Y188L", "G190A", "G190S", "G190E", "H221Y", 
+                          "P225H", "F227L", "F227C", "M230L", "Y318F"],
+                "INSTI": ["H51Y", "T66I", "T66K", "E92Q", "T97A", "G118R", "F121Y", "E138K", "E138A", 
+                          "G140S", "G140A", "S147G", "Q148H", "Q148R", "Q148K", "S153Y", "N155H", "R263K"],
+                "PI": ["L10F", "L24I", "V32I", "L33F", "M46I", "M46L", "I47V", "I47A", "G48V", 
+                       "I50L", "I50V", "F53L", "I54V", "I54L", "I54M", "G73S", "T74P", "L76V", "V82A", 
+                       "V82T", "V82F", "I84V", "N88S", "L89V", "L89T", "L90M"]}
 
-from DRMs import *
+from DRMs import get_scores, create_drm_count_dict, plot_drm_freqs
 
 csv_files = {
    # "NRTI": ["ABC_3TC", "AZT_3TC", "TDF_XTC"], 
@@ -34,7 +32,7 @@ for drug_class, files in csv_files.items():
         col_name = "CompMutList" 
 
     scored_muts = get_scores(drug_class, "Rule")
-    
+    drms_to_show = drms_to_show[drug_class]
     
     for drug in files: 
         path = dir + "/" + drug + ".csv"
@@ -42,14 +40,12 @@ for drug_class, files in csv_files.items():
                                                                               scored_muts)
 
         sorted_drm_freq = dict(sorted(drm_counts.items(), key=lambda x: x[1], reverse=True))
-        print(sorted_drm_freq)
 
         for drm, count in sorted_drm_freq.items():
             pcnt = (count/num_isolates_wdrm) * 100
             rounded_pcnt = round(pcnt, 1)
             sorted_drm_freq[drm] = rounded_pcnt
-        
 
-        plot_drm_freqs(drug, num_isolates, num_isolates_wdrm, sorted_drm_freq, muts_to_show[drug_class])
-          
-        print("\n\n")
+        sorted_drm_freq_to_show ={drm: sorted_drm_freq[drm] for drm in drms_to_show if drm in sorted_drm_freq}
+
+        plot_drm_freqs(drug, num_isolates, num_isolates_wdrm, sorted_drm_freq_to_show)

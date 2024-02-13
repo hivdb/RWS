@@ -138,7 +138,12 @@ def simplify_mutation(mutation):
             return mutation
 
 
-# This can be modified to provide multiple mutation when there is more than one non-consensus aa
+# This can be modified to provide multiple mutation when there is more than one 
+#        non-consensus aa
+# This function (1) counts the rows in the genotype-treatment files for a drug
+# (2) counts the rows containing a DRM
+# (3) creates a dictionary in which the key is a mutation and the value 
+#            is the count of that mutation        
 def create_drm_count_dict(file_path, column_name, scored_muts):
     mut_list = []
     num_isolates = 0
@@ -203,26 +208,26 @@ def sort_mut_bypos(mut):
     return int(numeric_part)
 
 
-def plot_drm_freqs(drug, num_isolates, num_isolates_wdrm, drm_freq, muts_to_show):
-    print(drm_freq)
-    drm_freq_wout_cons = {}
-    for mut, freq in drm_freq.items(): 
-        new_mut = mut[1:]
-        drm_freq_wout_cons[new_mut] = freq
+def plot_drm_freqs(drug, num_isolates, num_isolates_wdrm, drm_freqs):
+    #print("Sample DRMs:", drm_freq)
+    #print(drms_to_show)
+    # drm_freq_wout_cons = {}
+    # for mut, freq in drm_freq.items(): 
+    #     new_mut = mut[1:]
+    #     drm_freq_wout_cons[new_mut] = freq
 
     # create a new dictionary with only muts_to_show
-    drm_freq_to_show = {}
-    for mut in muts_to_show:
-        if mut not in drm_freq_wout_cons:
-            drm_freq_to_show[mut] = 0
-        else :
-            drm_freq_to_show[mut] = drm_freq_wout_cons[mut]
-        
+    # drm_freq_to_show = {element: 0 for element in drms_to_show}
+    # for drm in drm_freq:
+    #     if drm in drms_to_show: 
+    #         drm_freq_to_show[drm] = drm_freq_to_show[drm]
+    #print(drm_freq_to_show)    
     #drms_sorted_bypos = dict(sorted(drm_freq_wout_cons.items(), key=lambda item: item[0]))
-    drms_sorted_bypos = dict(sorted(drm_freq_to_show.items(), key=lambda item: sort_mut_bypos(item[0])))
+    #drms_sorted_bypos = dict(sorted(drm_freq_to_show.items(), key=lambda item: sort_mut_bypos(item[1])))
+    #drms_sorted_bypos = drm_freq_to_show
 
-    mutations = list(drms_sorted_bypos.keys())
-    pcnts = list(drms_sorted_bypos.values())
+    mutations = list(drm_freqs.keys())
+    pcnts = list(drm_freqs.values())
     plt.figure(figsize=(10, 3))
     plt.title(f"{drug} NumIsolates:{num_isolates} NumIsolatesWDRM: {num_isolates_wdrm} ")
     plt.bar(mutations, pcnts)
@@ -304,7 +309,7 @@ def plot_phenotypes(drug, phenotype_data, min_count=2, max_drms=7, \
     plt.xticks(fontsize=14)
     plt.yticks(fontsize=12)
     #plt.show()
-    plt.savefig(drug+".phenotypes.png")
+    #plt.savefig(drug+".phenotypes.png")
 
     df_medians = df[['Pattern', 'Count', 'Rank', 'Median']] 
     df_q1 = df[['Pattern', 'Count', 'Rank', 'Q1']] 

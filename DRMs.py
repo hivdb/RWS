@@ -207,30 +207,16 @@ def sort_mut_bypos(mut):
     numeric_part = mut[:-1]
     return int(numeric_part)
 
+def extract_position(mut):
+    match = re.search(r'\d+', mut)
+    return int(match.group()) if match else None
 
-def plot_drm_freqs(drug, num_isolates, num_isolates_wdrm, drm_freqs):
-    #print("Sample DRMs:", drm_freq)
-    #print(drms_to_show)
-    # drm_freq_wout_cons = {}
-    # for mut, freq in drm_freq.items(): 
-    #     new_mut = mut[1:]
-    #     drm_freq_wout_cons[new_mut] = freq
-
-    # create a new dictionary with only muts_to_show
-    # drm_freq_to_show = {element: 0 for element in drms_to_show}
-    # for drm in drm_freq:
-    #     if drm in drms_to_show: 
-    #         drm_freq_to_show[drm] = drm_freq_to_show[drm]
-    #print(drm_freq_to_show)    
-    #drms_sorted_bypos = dict(sorted(drm_freq_wout_cons.items(), key=lambda item: item[0]))
-    #drms_sorted_bypos = dict(sorted(drm_freq_to_show.items(), key=lambda item: sort_mut_bypos(item[1])))
-    #drms_sorted_bypos = drm_freq_to_show
-
-    mutations = list(drm_freqs.keys())
-    pcnts = list(drm_freqs.values())
+def plot_drm_freqs(drug, num_isolates, num_isolates_wdrm, drm_freqs_df):
+    drms = list(drm_freqs_df["DRM"])
+    pcnts = list(drm_freqs_df["Pcnt"])
     plt.figure(figsize=(10, 3))
     plt.title(f"{drug} NumIsolates:{num_isolates} NumIsolatesWDRM: {num_isolates_wdrm} ")
-    plt.bar(mutations, pcnts)
+    plt.bar(drms, pcnts)
     plt.xlabel('DRMs')
     plt.xticks(rotation=90)
     plt.subplots_adjust(bottom=0.3)

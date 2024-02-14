@@ -38,18 +38,17 @@ for drug_class, files in csv_files.items():
     for drug in files: 
         path = dir + "/" + drug + ".csv"
         
-        # drm_counts is a dictionary in which the keys are scored drms and the values
-        # are the number of occurrences of the drm
+        # drm_counts is a dict in which keys are scored drms and values are # of drm occurrences
+        # only those drms that have scores are retained
         (num_isolates, num_isolates_wdrm, drm_sample_counts) = create_drm_count_dict(path, col_name, 
                                                                               scored_muts)
              
-        # create a new dictionary in which drms_to_show which are not in drm_counts are added
-        # and assigned a count of 0
+        # create new dict in which drms_to_show not in drm_counts are added and assigned a count = 0
         drm_all_counts = {k: drm_sample_counts.get(k, 0) for k in 
                           set(drms_to_show + list(drm_sample_counts.keys()))}
         df = pd.DataFrame(list(drm_all_counts.items()), columns =['DRM', 'Count'])
         
-        # Filter the df so that is only has rows with DRMs that are in drms_to_show
+        # filter the df so that is only has rows with DRMs that are in drms_to_show
         df = df[df['DRM'].isin(drms_to_show)]
         df['Pcnt'] = (df['Count'] / num_isolates_wdrm) * 100
         df['Pcnt'] = df['Pcnt'].round(1)

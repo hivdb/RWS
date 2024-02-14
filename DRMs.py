@@ -18,7 +18,6 @@ config = {
 
 tams = {41: ["*"], 67: ["*"], 70: ["R"], 210: ["*"], 215: ["*"], 219: ["*"]}
 
-
 def is_tam(drm):
     pattern = r'([A-Za-z])(\d+)([A-Za-z]+)'
     match = re.match(pattern, drm)
@@ -32,19 +31,12 @@ def is_tam(drm):
         return True
     return False
 
-
+#combines mutations in two strings from  a df into one string
+#and sorts them by their positions
 def combine_drms_from_two_columns(column1, column2):
-    if (column1 == "" and column2 == ""):
-        return ""
-    elif column2 == "":
-        return column1
-    elif column1 == "":
-        return column2
-    else:
-        return column1 + ", " + column2 
-
-
-def combine_sort_drms_from_two_columns(column1, column2):
+    # Handle None or NaN values by converting them to empty strings
+    column1 = "" if pd.isnull(column1) else column1
+    column2 = "" if pd.isnull(column2) else column2
     new_string_list = ""
     if (column1 == "" and column2 == ""):
         new_string_list = ""
@@ -55,8 +47,10 @@ def combine_sort_drms_from_two_columns(column1, column2):
     else:
         new_string_list = column1 + ", " + column2 
         new_string_list = sort_mutlist_bypos(new_string_list)
+    return new_string_list
 
-
+# Accepts a string with a list of comma-separated mutattion
+# returns a string in which the mutations are sorted by position        
 def sort_mutlist_bypos(mutlist_string):
     mutlist = mutlist_string.split(", ")
     sorted_mutations = sorted(mutlist, key=extract_position)
@@ -83,7 +77,9 @@ def get_scores(drug_class, mut_column):
 # included_drms is a look-up list used to filter the sample_drms. It has just one aa following the pos
 # Because M184VI is common, we want to prevent it from being a mixture so it is converted to M184V 
 # Can this function be shortened in order to use sorted() with this as a key function
+# HOW CAN THIS BE SIMPLIFIED???
 def filter_drms(sample_drms, included_drms):
+    #print ("\n\nIn filter_drms, sample_drms", sample_drms)
     sample_drm_list = sample_drms.split(", ")
     filtered_list = []
     for sample_drm in sample_drm_list:
@@ -107,6 +103,7 @@ def filter_drms(sample_drms, included_drms):
 
 
 # Insertions contain "_" and are not considered to be mixtures
+# Consider indicating insertions with "Ins"
 def count_mixtures(drms):
     count = 0
     for drm in drms.split(', '):

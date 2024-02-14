@@ -88,7 +88,7 @@ for drug in drug_class_drugs[drug_class]:
         Count=('DRMsToShow', 'size'),  # Count the occurrences of each DRM pattern
         Folds=('Fold', list)  # Collect all phenotype values in a list for each DRM pattern
     ).reset_index()
-    print("\n\n", drm_group)
+    #print("\n\n", drm_group)
 
     # Convert the aggregated DataFrame to the desired dictionary format
     drm_patterns = drm_group.set_index('DRMsToShow').T.to_dict('list')
@@ -98,7 +98,7 @@ for drug in drug_class_drugs[drug_class]:
     drm_patterns_df = pd.DataFrame.from_dict(drm_patterns, orient='index', 
                                     columns=['Count', 'Folds']).reset_index()
     drm_patterns_df.rename(columns={'index': 'DRMsToShow'}, inplace=True)
-    print("\n\n", drm_patterns_df)
+    #print("\n\n", drm_patterns_df)
 
     # Calculate the necessary statistics
     drm_patterns_df['Median'] = drm_patterns_df['Folds'].apply(np.median)
@@ -110,78 +110,18 @@ for drug in drug_class_drugs[drug_class]:
     drm_patterns_df['NumDRMs'] = drm_patterns_df['DRMsToShow'].apply(lambda x: len(x.split(', ')))
     drm_patterns_df = drm_patterns_df[['DRMsToShow', 'Count', 'NumDRMs', 'StringFolds', 'Median',
                                        'Min', 'Max', 'Q1', 'Q3']]
-    print("\n\n", drm_patterns_df)
+    
 
     # Sort by 'median_fold' in descending order
     drm_patterns_df.sort_values(by='Median', ascending=False, inplace=True)
-
+    #print("\n\n", drm_patterns_df)
     # Convert DataFrame to the list of tuples if needed for the plot_phenotypes function
-    drm_patterns_table_by_fold = [tuple(x) for x in drm_patterns_df.to_numpy()]
-
-# for drug in drug_class_drugs[drug_class]:
-#     phenotypes = []
-#     drm_pattern_counts = {}
-#     drm_pattern_Folds = {}
-#     drm_patterns = {}
-#     num_isolates = 0
-#     with open(csv_file, mode='r', encoding='utf-8-sig') as file:      
-#         reader = csv.DictReader(file)
-#         selected_data = [] 
-#         for row in reader:
-#             selected_row = {column: row[column] for column in columns_to_read}
-#             #print("selected_row", selected_row)
-#             selected_data.append(selected_row) 
-#             if drug_class == "PI":
-#                 all_drms = combine_drms_from_two_columns(selected_row["PIMajorDRMs"], 
-#                                                          selected_row["PIMinorDRMs"])
-#             elif drug_class == "INSTI":
-#                 all_drms = combine_drms_from_two_columns(selected_row["INIMajorDRMs"], 
-#                                                          selected_row["INIMinorDRMs"])
-#             else:
-#                 all_drms = selected_row[drm_column]
-#             all_drms = sort_mutlist_bypos(all_drms)       
-#             if selected_row["Method"] != "PhenoSense" or selected_row[drug] == "" or all_drms == "":
-#                 continue          
-#             filtered_drms = filter_drms(all_drms, drms_to_show[drug_class])         
-#             phenotype = float(selected_row[drug].replace(",", ""))
-#             num_drms = len(filtered_drms.split(', '))
-#             num_mixtures = count_mixtures(filtered_drms)            
-#             if (num_mixtures/num_drms) > pcnt_mix_disqualified:
-#                 continue
-#             num_isolates +=1    
-#             phenotypes.append([filtered_drms, drug, phenotype])     
-#         #for item in phenotypes:
-#         #    print(item)
-          
-    # for (filtered_drms, drug, fold) in phenotypes:
-    #     if filtered_drms in drm_patterns:
-    #         drm_patterns[filtered_drms]["count"] +=1
-    #         drm_patterns[filtered_drms]["fold"].append(fold)
-    #     else:
-    #         drm_patterns[filtered_drms] = {"count": 1, "fold": [fold]}            
-
-    # drms_phenotype_table = []       
-    # for filtered_drms in drm_patterns.keys():
-    #     count = drm_patterns[filtered_drms]["count"]
-    #     num_drms = len(filtered_drms.split(', '))
-    #     median_fold = statistics.median(drm_patterns[filtered_drms]["fold"])
-    #     min_fold = min(drm_patterns[filtered_drms]["fold"])
-    #     max_fold = max(drm_patterns[filtered_drms]["fold"])
-    #     q1 = np.percentile(drm_patterns[filtered_drms]["fold"],25)
-    #     q3 = np.percentile(drm_patterns[filtered_drms]["fold"],75)
-    #     string_Folds = str(drm_patterns[filtered_drms]["fold"])
-    #     string_folds = string_folds[1:-1]
-    #     #print(type(string_folds), "  ", string_folds)
-    #     drms_data = (filtered_drms, count, num_drms, string_folds, median_fold, min_fold, max_fold, q1, q3)
-    #     drms_phenotype_table.append(drms_data)
     
-    # num_patterns = len(drms_phenotype_table)
-    # sorted_drms_table_by_count = sorted(drms_phenotype_table, key=lambda x:x[1], reverse=True)
-    # sorted_drms_table_by_fold = sorted(drms_phenotype_table, key=lambda x:x[4], reverse=True)
-    # #for item in sorted_drms_table_by_fold:
-    # #    print(item)
-
-    # plot_phenotypes(drug, sorted_drms_table_by_fold)
+    drm_patterns_table_by_fold = [tuple(x) for x in drm_patterns_df.to_numpy()]
+    #for item in drm_patterns_table_by_fold:
+    #    print(item)
+    
+    plot_phenotypes(drug, drm_patterns_table_by_fold)
 
     # file_name = drug + "_drm_patterns.csv"
     # with open(file_name, 'w', newline='', encoding='utf-8') as file:

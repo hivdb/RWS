@@ -239,76 +239,42 @@ def remove_cons_from_mutlist(mut_list):
     return ', '.join(drms_wout_cons)
 
 
-def plot_phenotypes(drug, phenotype_data, min_count=2, max_drms=7, \
+def plot_phenotypes(drug, phenotype_data, min_count=2, max_drms=7, 
                     min_median=3.0, xlim = 0.5):
     df = pd.DataFrame(phenotype_data, columns = ['Pattern', 'Count', 'NumDRMs', 'Folds', 'Median', \
                                                   'Min', 'Max', 'Q1', 'Q3'])
-    df = df[df['Pattern'] != ""]
     df['Pattern'] = df['Pattern'].apply(remove_cons_from_mutlist)
     df = df[df['Count'] >= min_count]
     df = df[df['Median'] >= min_median]
     df = df[df['NumDRMs'] <= max_drms]
-    df['Rank'] =df['Median'].rank(ascending=False, method='first')
+    df['Rank'] =df['Median'].rank(ascending=True, method='first')
     num_rows = len(df)
-    #print(df)
-    rows_to_add = []
-    for index, row in df.iterrows():
-        rank = row['Rank']
-        pattern = row['Pattern']
-        string_list_folds = row['Folds']
-        median = row['Median']
-        q1 = row["Q1"]
-        q3 = row["Q3"]
-        actual_list_folds = ast.literal_eval(string_list_folds)
-        if not is_iterable(actual_list_folds):
-            actual_list_folds = [actual_list_folds]
-        for fold in actual_list_folds:
-            if fold <xlim:
-                fold = xlim
-            if fold >128:
-                fold=128
-            new_row = (rank, pattern, fold)
-            rows_to_add.append(new_row)
 
-    df_for_plot = pd.DataFrame(rows_to_add)
-    print(df_for_plot)
-    column_names = ('Rank', 'Pattern', 'Fold')
-    df_for_plot.columns = column_names
-    plt.figure(figsize=(10, num_rows/6))
-    plt.subplots_adjust(top=0.95)
-    plt.subplots_adjust(left=0.3)
-    sns.scatterplot(data=df_for_plot, x='Fold', y='Rank', color="white")
+    medians_df = df[['Pattern', 'Count', 'Rank', 'Median']] 
+    q1_df = df[['Pattern', 'Count', 'Rank', 'Q1']] 
+    q3_df = df[['Pattern', 'Count', 'Rank', 'Q3']] 
+    medians_df.loc[medians_df["Median"] > 128, "Median"] = 128
+    q1_df.loc[q1_df["Q1"] > 128, "Q1"] = 128
+    q3_df.loc[q3_df["Q3"] > 128, "Q3"] = 128
+    title = f"{drug} susc (min #results/pattern:{min_count} \n" + \
+            f"lowest median:{min_median} Max DRMs:{max_drms})"
     x_tick_positions = [1, 2, 4, 8, 16, 32, 64, 128]
     x_tick_labels = ["1", "2", "4", "8", "16", "32", "64", "128"]
-    ylim = plt.ylim()
-    plt.ylim(ylim[::-1])
-    plt.yticks(fontsize=8)
+    plt.figure(figsize=(10, num_rows/6))
+    plt.title(title, fontsize=16, fontweight='bold') 
+    sns.scatterplot(data=medians_df, x='Median', y='Rank', color="blue", label="Median")
+    sns.scatterplot(data=q1_df, x='Q1', y='Rank', color="blue", marker="<", label="IQ1" )
+    sns.scatterplot(data=q3_df, x='Q3', y='Rank', color='blue', marker=">", label="IQ3")
+    plt.subplots_adjust(top=0.95)
+    plt.subplots_adjust(left=0.3)
     plt.ylabel('')
-    plt.yticks(ticks=df_for_plot['Rank'], labels=df_for_plot['Pattern'])
+    plt.yticks(ticks=medians_df['Rank'], labels=medians_df['Pattern'])
+    plt.yticks(fontsize=10)
     plt.grid(axis='y')
     plt.xscale('log', base=2)
-    plt.xlim(left=0.6)
+    plt.xlabel('Fold Reduced Susceptibility', fontsize=14)
     plt.xticks(ticks=x_tick_positions, labels=x_tick_labels)
     plt.xticks(fontsize=14)
-    plt.yticks(fontsize=12)
-    #plt.show()
-    #plt.savefig(drug+".phenotypes.png")
-
-    df_medians = df[['Pattern', 'Count', 'Rank', 'Median']] 
-    df_q1 = df[['Pattern', 'Count', 'Rank', 'Q1']] 
-    df_q3 = df[['Pattern', 'Count', 'Rank', 'Q3']] 
-    df_medians.loc[df_medians["Median"] > 128, "Median"] = 128
-    plt.subplots_adjust(top=0.95)
-    title = f"{drug} susc (Min #results/pattern:{min_count} \n" + \
-            f" Lowest median:{min_median} Max DRMs:{max_drms})"
-    plt.title(title, fontsize=16, fontweight='bold') 
-    plt.subplots_adjust(left=0.3)
-    sns.scatterplot(data=df_medians, x='Median', y='Rank', color="blue", label="Median")
-    sns.scatterplot(data=df_q1, x='Q1', y='Rank', color="blue", marker="<", label="IQ1" )
-    sns.scatterplot(data=df_q3, x='Q3', y='Rank', color='blue', marker=">", label="IQ3")
-    plt.ylabel('')
-    plt.xlabel('Fold Reduced Susceptibility', fontsize=14)
-    plt.xticks(fontsize=14)
-    plt.yticks(fontsize=12)
+    plt.xlim(left=0.6)
     #plt.show()
     plt.savefig(drug+".phenotypes_medians.png")

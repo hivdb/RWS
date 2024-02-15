@@ -1,4 +1,4 @@
-﻿Rule,Cons,Pos,Mut
+﻿DRMs,Cons,Pos,Mut
 M41L,M,41,L
 A62V,A,62,V
 K65E,K,65,E
@@ -10,11 +10,11 @@ D67H,D,67,H
 D67N,D,67,N
 D67S,D,67,S
 D67T,D,67,T
-D67del,D,67,del
-S68del,S,68,del
+D67d,D,67,d
+S68d,S,68,d
 T69G,T,69,G
-T69ins,T,69,ins
-T69del,T,69,del
+T69i,T,69,i
+T69d,T,69,d
 K70E,K,70,E
 K70G,K,70,G
 K70N,K,70,N
@@ -22,7 +22,7 @@ K70Q,K,70,Q
 K70R,K,70,R
 K70S,K,70,S
 K70T,K,70,T
-K70del,K,70,del
+K70d,K,70,d
 L74I,L,74,I
 L74V,L,74,V
 V75I,V,75,I

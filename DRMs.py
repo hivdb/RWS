@@ -49,6 +49,7 @@ def combine_drms_from_two_columns(column1, column2):
         new_string_list = sort_mutlist_bypos(new_string_list)
     return new_string_list
 
+
 # Accepts a string with a list of comma-separated mutattion
 # returns a string in which the mutations are sorted by position        
 def sort_mutlist_bypos(mutlist_string):
@@ -61,16 +62,6 @@ def sort_mutlist_bypos(mutlist_string):
 def extract_position(mutation):
     match = re.search(r'\d+', mutation)
     return int(match.group()) if match else 0
-
-
-def get_scores(drug_class, mut_column):
-    scored_muts = set()
-    Score_file = f"{drug_class}_DataSets/{drug_class}_Scores.csv"
-    with open(Score_file, mode='r', encoding='utf-8-sig') as file:
-        csv_reader = csv.DictReader(file)
-        for row in csv_reader:
-            scored_muts.add(row[mut_column])
-    return scored_muts
 
 
 # sample_drms is a string. It may have more than one aa following the pos
@@ -126,49 +117,38 @@ def simplify_mutation(mutation):
     if match:
         consensus, position, amino_acids = match.groups()
         if "_" in amino_acids: 
-            return mutation
+            new_mutation = consensus + position + "i"
+            return new_mutation
+        elif amino_acids == "~":
+            new_mutation = consensus + position + "d"
+            return new_mutation
         elif consensus in amino_acids:
-            simplified_amino_acids = amino_acids.replace(consensus, '')
-            simplified_mutation = consensus + position + simplified_amino_acids
-            return simplified_mutation
+            new_amino_acids = amino_acids.replace(consensus, '')
+            new_mutation = consensus + position + new_amino_acids
+            return new_mutation
         else:
             return mutation
 
 
-# This can be modified to provide multiple mutation when there is more than one 
-#        non-consensus aa
-# This function (1) counts the rows in the genotype-treatment files for a drug
-# (2) counts the rows containing a DRM
-# (3) creates a dictionary in which the key is a mutation and the value 
-#            is the count of that mutation        
-def create_drm_count_dict(file_path, column_name, scored_muts):
-    mut_list = []
-    num_isolates = 0
-    with open(file_path, mode='r', encoding='utf-8') as file:
-        csv_reader = csv.DictReader(file)
-        header = next(csv_reader)
-        for row in csv_reader:
-            mut_list.append(row[column_name])
-            num_isolates +=1 
-    drm_counts = {}
+def create_drm_count_dict(list_of_sample_muts, scored_muts_list):
     num_isolates_wdrm = 0
-    for i in range(len(mut_list)):
-        # Create a list of mutations
-        sample_mut_list = mut_list[i].split(', ')
-        sample_has_drm_flag = 0
-        for j in range(len(sample_mut_list)):
-            mutation = sample_mut_list[j]
-            mutation = simplify_mutation(mutation)
-            if mutation in scored_muts:
-                sample_has_drm_flag = 1
-                if mutation in drm_counts:
-                    drm_counts[mutation] +=1
-                else:
-                    drm_counts[mutation]=1
-        if sample_has_drm_flag == 1:
-            num_isolates_wdrm +=1    
-    return num_isolates, num_isolates_wdrm, drm_counts
-
+    drm_counts = {}
+    for i in range(len(list_of_sample_muts)):
+          sample_muts = list_of_sample_muts[i].split(', ')
+          sample_has_drm_flag = 0
+          for j in range(len(sample_muts)):
+              mutation = sample_muts[j]
+              mutation = simplify_mutation(mutation)
+              if mutation in scored_muts_list:
+                  sample_has_drm_flag = 1
+                  if mutation in drm_counts:
+                      drm_counts[mutation] +=1
+                  else:
+                      drm_counts[mutation]=1
+          if sample_has_drm_flag == 1:
+              num_isolates_wdrm +=1
+    return num_isolates_wdrm, drm_counts
+          
 
 def create_drm_pattern_count_dict(file_path, column_name, scored_muts, muts_to_show):
     mut_list = []
@@ -204,9 +184,11 @@ def sort_mut_bypos(mut):
     numeric_part = mut[:-1]
     return int(numeric_part)
 
+
 def extract_position(mut):
     match = re.search(r'\d+', mut)
     return int(match.group()) if match else None
+
 
 def plot_drm_freqs(drug, num_isolates, num_isolates_wdrm, drm_freqs_df):
     drms = list(drm_freqs_df["DRM"])
@@ -218,7 +200,7 @@ def plot_drm_freqs(drug, num_isolates, num_isolates_wdrm, drm_freqs_df):
     plt.xticks(rotation=90)
     plt.subplots_adjust(bottom=0.3)
     plt.ylabel('Percent')
-    plt.ylim(0,70)
+    plt.ylim(0,60)
     plt.grid(axis='y')
     plt.savefig(drug+".png")
 

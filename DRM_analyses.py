@@ -35,16 +35,16 @@ for drug_class, drugs in drug_class_drugs.items():
     scored_muts_df = pd.read_csv(file_with_scores)
     #print("DF\n", scored_muts_df)
     scored_muts_list = scored_muts_df['DRMs'].tolist()
-    print("ScoredMuts:\n", scored_muts_list)
+    #print("ScoredMuts:\n", scored_muts_list)
     drms_to_show = drms_to_show[drug_class]
-    print("DRMsToShow:", drms_to_show)  
+    #print("DRMsToShow:", drms_to_show)  
 
     for drug in drugs: 
         path = dir + "/" + drug + ".csv"
         df = pd.read_csv(path)
         list_of_sample_muts = df[col_name].tolist()
         num_isolates = len(list_of_sample_muts)
-        print("NumberOfIsolates:", num_isolates)
+        #print("NumberOfIsolates:", num_isolates)
         (num_isolates_wdrm, drm_counts_dict) = create_drm_count_dict(list_of_sample_muts, 
                                                                      scored_muts_list)
         

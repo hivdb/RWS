@@ -21,7 +21,7 @@ tams = {41: ["*"], 67: ["*"], 70: ["R"], 210: ["*"], 215: ["*"], 219: ["*"]}
 
 with open('app.log', 'a') as log_file:
     print("This is an info message", file=log_file)
-logging.basicConfig(filename='app.log', level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+#logging.basicConfig(filename='app.log', level=logging.CRITICAL, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
 def is_iterable(obj):
@@ -78,13 +78,36 @@ def extract_position(mutation):
     return int(match.group()) if match else 0
 
 
+#Format insertions and deletions
+def format_indels (all_drms):
+    #with open('Debugging.txt', 'a') as file:
+    #    file.write(f'In format_indels; all_drms {all_drms} \n')  
+    drm_list = all_drms.split(", ")
+    new_drm_list = []
+    for drm in drm_list: 
+        pattern = r"(\D)(\d{1,3})(.+)"
+        match = re.search(pattern, drm)
+        if match:
+            cons = match.group(1)
+            sample_pos = match.group(2)
+            sample_mutations = match.group(3)
+        if int(sample_pos) == 69 and "_" in sample_mutations:
+            new_drm_list.append("T69i")
+        elif "~" in sample_mutations:
+            deletion = cons + sample_pos + "d"
+            new_drm_list.append(deletion)
+        else:
+            new_drm_list.append(drm)
+    new_list_string = ", ".join(new_drm_list)
+    with open('Debugging.txt', 'a') as file:
+        file.write(f'After processing; new_list_string {new_list_string} \n\n')
+    return ", ".join(new_drm_list) 
+
 # sample_drms is a string. It may have more than one aa following the pos
 # included_drms is a look-up list used to filter the sample_drms. It has just one aa following the pos
 # Because M184VI is common, we want to prevent it from being a mixture so it is converted to M184V 
 # Can this function be shortened in order to use sorted() with this as a key function
-# HOW CAN THIS BE SIMPLIFIED???
 def filter_drms(sample_drms, drms_to_show):
-    #print ("\n\nIn filter_drms, sample_drms", sample_drms)
     sample_drm_list = sample_drms.split(", ")
     filtered_list = []
     for sample_drm in sample_drm_list:
@@ -93,13 +116,8 @@ def filter_drms(sample_drms, drms_to_show):
         pattern1 = r"(\D)(\d{1,3})(.+)"
         match1 = re.search(pattern1,sample_drm)
         if match1:
-            cons = match1.group(1)
             sample_pos = match1.group(2)
             sample_mutations = match1.group(3)
-            if "_" in sample_mutations:
-                sample_drm = cons + sample_pos + "i"
-                sample_drms = f"T69i, {sample_drms}"
-                print(sample_drms)
         for drm in drms_to_show:
             pattern2 = r"\D(\d{1,3})(\D)"
             match2 = re.search(pattern2, drm)
@@ -107,19 +125,12 @@ def filter_drms(sample_drms, drms_to_show):
                 included_pos = match2.group(1)
                 included_aa = match2.group(2)
             if sample_pos == included_pos:
-                if int(sample_pos) == 69:
-                    print("Sample DRM:" , sample_drm, "Included aa: ", included_aa)
                 if included_aa in sample_mutations:
-
                     filtered_list.append(sample_drm) 
-                if "i" in sample_drm:
-                    print(sample_drm)
-    #if "T69i" in filtered_list:
-    #    print(filtered_list)
-    return ", ".join(filtered_list)
-    new_list = ", ".joint(filtered_list)
-    if "T69i" in new_list:
-        print("Filtered List: ", filtered_list)
+    filtered_list = ", ".join(filtered_list)
+    with open('Filtered_List.txt', 'a') as file:
+        file.write(f'After processing; new_list_string {filtered_list} \n\n')
+    return (filtered_list)
 
 
 # Insertions contain "_" and are not considered to be mixtures
@@ -244,6 +255,8 @@ def remove_cons_from_mutlist(mut_list):
 
 def plot_phenotypes(drug, phenotype_data, min_count=1, max_drms=7, 
                     min_median=4.0, xlim = 0.5):
+    if drug == "TDF":
+        drug = "TFV"
     df = pd.DataFrame(phenotype_data, columns = ['Pattern', 'Count', 'NumDRMs', 'Folds', 'Median', \
                                                   'Min', 'Max', 'Q1', 'Q3'])
     df['Pattern'] = df['Pattern'].apply(remove_cons_from_mutlist)

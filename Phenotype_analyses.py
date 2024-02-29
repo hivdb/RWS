@@ -25,7 +25,7 @@ drms_to_show = {"NRTI": ["M41L", "A62V", "K65R", "K65N", "D67N", "T69i", "K70R",
                        "I50L", "I50V", "F53L", "I54V", "I54L", "I54M", "I54S", "I54T", "I54A", "G73S", "T74P", 
                         "L76V", "V82A", "V82T", "V82F", "I84V", "N88S", "N88D", "L89V", "L89T", "L90M"]}
 
-from DRMs import (combine_drms_from_two_columns, sort_mutlist_bypos, filter_drms,
+from DRMs import (combine_drms_from_two_columns, format_indels, sort_mutlist_bypos, filter_drms,
                   count_mixtures, plot_phenotypes)
 
 # Main program phenotype file
@@ -65,25 +65,26 @@ for drug in drug_class_drugs[drug_class]:
     # Filter df to contain only rows with DRMs and drug susc results performed by PhenoSense assy  
     df = df.loc[(df['Method'] == "PhenoSense") & (df[drug].notna()) & (df['AllDRMs'] != ""), :].copy()
     df = df.loc[(df['AllDRMs'].notna()), :].copy()
+    
+    #Convert insertions such as "T69S_SS" to T69i and Deletions such as T69~ to T69d
+    df['AllDRMs'] = df['AllDRMs'].astype(str)
+    df['AllDRMs'] = df['AllDRMs'].apply(format_indels)
     #print(df.head(100))
 
     # Add a column that shows only those DRMs that are in drms_to_show
     df.loc[:, 'DRMsToShow'] = df['AllDRMs'].apply(lambda drms: filter_drms(drms, drms_to_show[drug_class]))
     df = df.loc[(df['DRMsToShow'] != ""), :].copy()
-    #print(df.head(300))
-    
+     
     if df[drug].dtype == 'object':
         df.loc[:, 'Fold'] = df[drug].str.replace(",", "").astype(float)
     else:
         df.loc[:, 'Fold'] = df[drug].astype(float)
-    
+
     # Further filtering based on mixture percentage
-    # The third line of code does not seem to be filtering rows with a high proportion of mixtures
     df.loc[:, 'NumDRMs'] = df['DRMsToShow'].apply(lambda x: len(x.split(', ')))
     df.loc[:, 'NumMixtures'] = df['DRMsToShow'].apply(count_mixtures)
     df['PcntMix'] = df['NumMixtures']/df['NumDRMs']
     df = df[df['PcntMix'] < 0.3]
-    #print("\n\n", df.tail(10))
 
     # Group by 'filtered_drms' and aggregate
     drm_group = df.groupby('DRMsToShow').agg(
@@ -119,14 +120,12 @@ for drug in drug_class_drugs[drug_class]:
     
     # Convert DataFrame to the list of tuples if needed for the plot_phenotypes function
     drm_patterns_table_by_fold = [tuple(x) for x in drm_patterns_df.to_numpy()]
-    #for item in drm_patterns_table_by_fold:
-    #    print(item)
     
     plot_phenotypes(drug, drm_patterns_table_by_fold)
 
-    # file_name = drug + "_drm_patterns.csv"
-    # with open(file_name, 'w', newline='', encoding='utf-8') as file:
-    #     writer = csv.writer(file)
-    #     for row in sorted_drms_table_by_fold:
-    #         writer.writerow(row)
+    file_name = drug + "_drm_patterns.csv"
+    #with open(file_name, 'w', newline='', encoding='utf-8') as file:
+    #    writer = csv.writer(file)
+    #    for row in drm_patterns_table_by_fold:
+    #        writer.writerow(row)
     
